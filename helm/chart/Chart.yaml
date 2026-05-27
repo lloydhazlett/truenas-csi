@@ -1,5 +1,5 @@
 apiVersion: v2
-appVersion: "1.0.3"
+appVersion: "v1.0.4"
 description: TrueNAS CSI driver controller and node plugin
 name: truenas-csi
 type: application
