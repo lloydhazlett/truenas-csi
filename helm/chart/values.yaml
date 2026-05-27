@@ -41,6 +41,7 @@ images:
 
 controller:
   replicas: 1
+  nodeSelector: {}
   resources:
     requests:
       memory: "128Mi"
@@ -50,6 +51,7 @@ controller:
       cpu: "200m"
 
 node:
+  nodeSelector: {}
   resources:
     requests:
       memory: "128Mi"

@@ -21,6 +21,10 @@ spec:
       hostPID: true
       hostIPC: true
       priorityClassName: system-node-critical
+      {{- if .Values.node.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.node.nodeSelector | nindent 8 }}
+      {{- end }}
       tolerations:
         - operator: Exists
       containers:
