@@ -5,25 +5,31 @@ metadata:
   namespace: {{ include "truenas-csi.namespace" . }}
   labels:
     {{- include "truenas-csi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: node
 spec:
   selector:
     matchLabels:
-      app: truenas-csi-node
+      {{- include "truenas-csi.nodeSelectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        app: truenas-csi-node
+        {{- include "truenas-csi.labels" . | nindent 8 }}
+        app.kubernetes.io/component: node
     spec:
       serviceAccountName: truenas-csi-node-sa
       hostNetwork: true
       hostPID: true
       hostIPC: true
       priorityClassName: system-node-critical
+      {{- if .Values.node.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.node.nodeSelector | nindent 8 }}
+      {{- end }}
       tolerations:
         - operator: Exists
       containers:
         - name: csi-node
-          image: {{ .Values.images.csiDriver.repository }}:{{ .Values.images.csiDriver.tag }}
+          image: {{ include "truenas-csi.csiImage" . }}
           imagePullPolicy: {{ .Values.images.csiDriver.pullPolicy }}
           lifecycle:
             postStart:
@@ -39,6 +45,8 @@ spec:
           env:
             - name: CSI_ENDPOINT
               value: unix:///csi/csi.sock
+            - name: CSI_DRIVER_NAME
+              value: {{ .Values.csiDriver.name | quote }}
             - name: TRUENAS_URL
               valueFrom:
                 configMapKeyRef:
@@ -47,7 +55,7 @@ spec:
             - name: TRUENAS_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.apiSecret.name }}
+                  name: {{ required "apiSecret.name must be set to the name of your TrueNAS API key Secret" .Values.apiSecret.name | quote }}
                   key: {{ .Values.apiSecret.key }}
             - name: TRUENAS_DEFAULT_POOL
               valueFrom:
