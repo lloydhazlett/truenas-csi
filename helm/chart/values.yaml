@@ -8,6 +8,9 @@ truenas:
   iscsiIQNBase: ""
   insecureSkipVerify: ""
 
+# Reference to a pre-existing Secret containing the TrueNAS API key.
+# Create it before installing:
+#   kubectl -n <namespace> create secret generic <name> --from-literal=<key>=<api-key>
 apiSecret:
   name: ""
   key: password
@@ -15,7 +18,7 @@ apiSecret:
 images:
   csiDriver:
     repository: ghcr.io/truenas/truenas-csi
-    tag: v1.0.3
+    tag: ""  # defaults to Chart.AppVersion when empty
     pullPolicy: IfNotPresent
   provisioner:
     repository: registry.k8s.io/sig-storage/csi-provisioner
@@ -38,6 +41,7 @@ images:
 
 controller:
   replicas: 1
+  nodeSelector: {}
   resources:
     requests:
       memory: "128Mi"
@@ -47,6 +51,7 @@ controller:
       cpu: "200m"
 
 node:
+  nodeSelector: {}
   resources:
     requests:
       memory: "128Mi"
@@ -60,3 +65,6 @@ csiDriver:
   attachRequired: true
   podInfoOnMount: true
   fsGroupPolicy: File
+
+openshift:
+  enabled: false
