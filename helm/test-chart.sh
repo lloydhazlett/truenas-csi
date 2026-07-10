@@ -35,13 +35,14 @@ check "apiSecret.name required error" "apiSecret.name must be set"
 echo ""
 echo "2. Standard render (openshift.enabled=false)"
 output=$(helm template test "$CHART" \
+  --namespace truenas-csi \
   --set apiSecret.name=truenas-secret \
   --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
   --set truenas.nfsServer=192.168.1.1 \
   --set truenas.iscsiPortal="192.168.1.1:3260" 2>&1)
 
-check "Namespace"                       "kind: Namespace"
+absent "no Namespace object rendered"   "kind: Namespace"
 check "controller ServiceAccount"       "truenas-csi-controller-sa"
 check "node ServiceAccount"             "truenas-csi-node-sa"
 check "controller ClusterRole"          "truenas-csi-controller-role"
@@ -67,6 +68,7 @@ absent "SCC absent (openshift.enabled=false)" "kind: SecurityContextConstraints"
 echo ""
 echo "3. OpenShift render (openshift.enabled=true)"
 output=$(helm template test "$CHART" \
+  --namespace truenas-csi \
   --set apiSecret.name=truenas-secret \
   --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
@@ -86,6 +88,7 @@ check "capabilities version from appVersion"  "driver-version.*v1.1.1"
 echo ""
 echo "4. Custom driver name (csiDriver.name=csi.custom.io)"
 output=$(helm template test "$CHART" \
+  --namespace truenas-csi \
   --set apiSecret.name=truenas-secret \
   --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
@@ -101,6 +104,7 @@ check "node hostPath"            "plugins/csi.custom.io/"
 echo ""
 echo "5. Custom image tag (images.csiDriver.tag=v9.9.9)"
 output=$(helm template test "$CHART" \
+  --namespace truenas-csi \
   --set apiSecret.name=truenas-secret \
   --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
@@ -114,6 +118,7 @@ check "custom image tag honoured" "truenas-csi:v9.9.9"
 echo ""
 echo "6. NVMe-oF portal set (truenas.nvmeofPortal)"
 output=$(helm template test "$CHART" \
+  --namespace truenas-csi \
   --set apiSecret.name=truenas-secret \
   --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
