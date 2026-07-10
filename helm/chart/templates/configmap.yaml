@@ -13,6 +13,9 @@ data:
   {{- if .Values.truenas.iscsiIQNBase }}
   iscsiIQNBase: {{ .Values.truenas.iscsiIQNBase | quote }}
   {{- end }}
+  {{- if .Values.truenas.nvmeofPortal }}
+  nvmeofPortal: {{ .Values.truenas.nvmeofPortal | quote }}
+  {{- end }}
   {{- if .Values.truenas.insecureSkipVerify }}
   truenasInsecure: {{ .Values.truenas.insecureSkipVerify | quote }}
   {{- end }}

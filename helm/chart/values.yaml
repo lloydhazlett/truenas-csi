@@ -7,6 +7,9 @@ truenas:
   iscsiPortal: ""
   iscsiIQNBase: ""
   insecureSkipVerify: ""
+  # Optional: NVMe-oF portal (host:port, e.g. "YOUR-TRUENAS-IP:4420").
+  # Auto-derived from the truenasURL host if left empty.
+  nvmeofPortal: ""
 
 # Reference to a pre-existing Secret containing the TrueNAS API key.
 # Create it before installing:

@@ -67,6 +67,12 @@ spec:
                   name: truenas-csi-config
                   key: iscsiIQNBase
                   optional: true
+            - name: TRUENAS_NVMEOF_PORTAL
+              valueFrom:
+                configMapKeyRef:
+                  name: truenas-csi-config
+                  key: nvmeofPortal
+                  optional: true
             - name: TRUENAS_INSECURE_SKIP_VERIFY
               valueFrom:
                 configMapKeyRef:
