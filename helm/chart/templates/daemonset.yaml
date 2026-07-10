@@ -169,7 +169,7 @@ spec:
             path: /dev
         - name: modules-dir
           hostPath:
-            path: /lib/modules
+            path: {{ .Values.node.modulesPath | default "/lib/modules" }}
             type: Directory
         - name: iscsi-dir
           hostPath:

@@ -53,6 +53,10 @@ controller:
 
 node:
   nodeSelector: {}
+  # Host path to kernel modules, mounted read-only so the node plugin can
+  # modprobe iscsi_tcp etc. Override for distros that don't use /lib/modules
+  # (e.g. NixOS: /run/booted-system/kernel-modules/lib/modules).
+  modulesPath: /lib/modules
   resources:
     requests:
       memory: "128Mi"
