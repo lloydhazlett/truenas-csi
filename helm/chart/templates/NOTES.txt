@@ -13,7 +13,7 @@ PREREQUISITES
 CONFIGURATION
   The driver reads its endpoint from truenas.url (WebSocket URL):
 
-    truenas.url: "wss://<truenas-ip>/api/current"
+    truenas.url: "wss://<truenas-ip>"
 
   For self-signed certificates set truenas.insecureSkipVerify: "true".
 
@@ -26,6 +26,7 @@ OPENSHIFT
   If running on OpenShift, reinstall with:
 
     helm upgrade --install truenas-csi ./helm/chart \
+      --namespace truenas-csi --create-namespace \
       --set openshift.enabled=true \
       [other values...]
 

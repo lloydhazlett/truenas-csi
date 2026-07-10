@@ -1,5 +1,5 @@
 {{- define "truenas-csi.namespace" -}}
-{{- .Values.namespace }}
+{{- .Release.Namespace }}
 {{- end }}
 
 {{- define "truenas-csi.labels" -}}
