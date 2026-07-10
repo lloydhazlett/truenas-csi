@@ -36,7 +36,7 @@ echo ""
 echo "2. Standard render (openshift.enabled=false)"
 output=$(helm template test "$CHART" \
   --set apiSecret.name=truenas-secret \
-  --set truenas.url="wss://192.168.1.1/api/current" \
+  --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
   --set truenas.nfsServer=192.168.1.1 \
   --set truenas.iscsiPortal="192.168.1.1:3260" 2>&1)
@@ -48,10 +48,14 @@ check "controller ClusterRole"          "truenas-csi-controller-role"
 check "node ClusterRole"                "truenas-csi-node-role"
 check "CSIDriver"                       "kind: CSIDriver"
 check "driver name"                     "csi.truenas.io"
-check "truenasURL in ConfigMap"         "wss://192.168.1.1/api/current"
+check "truenasURL in ConfigMap"         "wss://192.168.1.1"
 check "defaultPool in ConfigMap"        "defaultPool.*tank"
 check "CSI_DRIVER_NAME env"             "CSI_DRIVER_NAME"
-check "image tag defaults to appVersion" "truenas-csi:v1.0.4"
+check "NVMe-oF portal env"              "TRUENAS_NVMEOF_PORTAL"
+check "node loads nvme modules"         "modprobe nvme_tcp"
+check "node mounts host /lib/modules"   "path: /lib/modules"
+absent "nvmeofPortal absent when unset" "nvmeofPortal:"
+check "image tag defaults to appVersion" "truenas-csi:v1.1.1"
 check "standard app name label"         "app.kubernetes.io/name: truenas-csi"
 check "standard instance label"         "app.kubernetes.io/instance: test"
 check "standard version label"          "app.kubernetes.io/version:"
@@ -64,7 +68,7 @@ echo ""
 echo "3. OpenShift render (openshift.enabled=true)"
 output=$(helm template test "$CHART" \
   --set apiSecret.name=truenas-secret \
-  --set truenas.url="wss://192.168.1.1/api/current" \
+  --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
   --set truenas.nfsServer=192.168.1.1 \
   --set truenas.iscsiPortal="192.168.1.1:3260" \
@@ -76,14 +80,14 @@ check "capabilities ConfigMap"                "truenas-csi-capabilities"
 check "node SCC user namespaced"              "serviceaccount:truenas-csi:truenas-csi-node-sa"
 check "controller SCC user namespaced"        "serviceaccount:truenas-csi:truenas-csi-controller-sa"
 check "capabilities driver-name from values"  "driver-name.*csi.truenas.io"
-check "capabilities version from appVersion"  "driver-version.*v1.0.4"
+check "capabilities version from appVersion"  "driver-version.*v1.1.1"
 
 # ── 4. Custom driver name ─────────────────────────────────────────────────────
 echo ""
 echo "4. Custom driver name (csiDriver.name=csi.custom.io)"
 output=$(helm template test "$CHART" \
   --set apiSecret.name=truenas-secret \
-  --set truenas.url="wss://192.168.1.1/api/current" \
+  --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
   --set truenas.nfsServer=192.168.1.1 \
   --set truenas.iscsiPortal="192.168.1.1:3260" \
@@ -98,13 +102,26 @@ echo ""
 echo "5. Custom image tag (images.csiDriver.tag=v9.9.9)"
 output=$(helm template test "$CHART" \
   --set apiSecret.name=truenas-secret \
-  --set truenas.url="wss://192.168.1.1/api/current" \
+  --set truenas.url="wss://192.168.1.1" \
   --set truenas.defaultPool=tank \
   --set truenas.nfsServer=192.168.1.1 \
   --set truenas.iscsiPortal="192.168.1.1:3260" \
   --set images.csiDriver.tag=v9.9.9 2>&1)
 
 check "custom image tag honoured" "truenas-csi:v9.9.9"
+
+# ── 6. NVMe-oF portal set ────────────────────────────────────────────────────
+echo ""
+echo "6. NVMe-oF portal set (truenas.nvmeofPortal)"
+output=$(helm template test "$CHART" \
+  --set apiSecret.name=truenas-secret \
+  --set truenas.url="wss://192.168.1.1" \
+  --set truenas.defaultPool=tank \
+  --set truenas.nfsServer=192.168.1.1 \
+  --set truenas.iscsiPortal="192.168.1.1:3260" \
+  --set truenas.nvmeofPortal="192.168.1.1:4420" 2>&1)
+
+check "nvmeofPortal in ConfigMap"       "nvmeofPortal:.*192.168.1.1:4420"
 
 # ── Result ────────────────────────────────────────────────────────────────────
 echo ""

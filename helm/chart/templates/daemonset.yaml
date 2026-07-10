@@ -34,7 +34,7 @@ spec:
           lifecycle:
             postStart:
               exec:
-                command: ["/bin/sh", "-c", "mkdir -p /run/lock/iscsi && mv /usr/sbin/iscsiadm /usr/sbin/iscsiadm.orig 2>/dev/null; printf '#!/bin/sh\\nnsenter --mount=/host/proc/1/ns/mnt -- /usr/sbin/iscsiadm \"$@\"\\n' > /usr/sbin/iscsiadm && chmod +x /usr/sbin/iscsiadm"]
+                command: ["/bin/sh", "-c", "mkdir -p /run/lock/iscsi && mv /usr/sbin/iscsiadm /usr/sbin/iscsiadm.orig 2>/dev/null; printf '#!/bin/sh\\nnsenter --mount=/host/proc/1/ns/mnt -- /usr/sbin/iscsiadm \"$@\"\\n' > /usr/sbin/iscsiadm && chmod +x /usr/sbin/iscsiadm; modprobe nvme_tcp 2>/dev/null; modprobe nvme_fabrics 2>/dev/null"]
           securityContext:
             privileged: true
           args:
@@ -78,6 +78,12 @@ spec:
                   name: truenas-csi-config
                   key: iscsiIQNBase
                   optional: true
+            - name: TRUENAS_NVMEOF_PORTAL
+              valueFrom:
+                configMapKeyRef:
+                  name: truenas-csi-config
+                  key: nvmeofPortal
+                  optional: true
             - name: TRUENAS_INSECURE_SKIP_VERIFY
               valueFrom:
                 configMapKeyRef:
@@ -96,6 +102,9 @@ spec:
               mountPropagation: Bidirectional
             - name: device-dir
               mountPath: /dev
+            - name: modules-dir
+              mountPath: /lib/modules
+              readOnly: true
             - name: iscsi-dir
               mountPath: /etc/iscsi
               mountPropagation: Bidirectional
@@ -158,6 +167,10 @@ spec:
         - name: device-dir
           hostPath:
             path: /dev
+        - name: modules-dir
+          hostPath:
+            path: /lib/modules
+            type: Directory
         - name: iscsi-dir
           hostPath:
             path: /etc/iscsi
