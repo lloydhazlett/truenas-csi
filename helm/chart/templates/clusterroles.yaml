@@ -5,6 +5,12 @@ metadata:
   labels:
     {{- include "truenas-csi.labels" . | nindent 4 }}
 rules:
+  # Required by external-provisioner to resolve the Secret referenced by the
+  # csi.storage.k8s.io/provisioner-secret-* StorageClass parameters (iSCSI CHAP
+  # secret, ZFS encryption key/passphrase).
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["persistentvolumes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]

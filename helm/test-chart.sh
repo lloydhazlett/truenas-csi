@@ -47,6 +47,7 @@ check "controller ServiceAccount"       "truenas-csi-controller-sa"
 check "node ServiceAccount"             "truenas-csi-node-sa"
 check "controller ClusterRole"          "truenas-csi-controller-role"
 check "node ClusterRole"                "truenas-csi-node-role"
+check "controller can read secrets"     'resources: \["secrets"\]'
 check "CSIDriver"                       "kind: CSIDriver"
 check "driver name"                     "csi.truenas.io"
 check "truenasURL in ConfigMap"         "wss://192.168.1.1"
