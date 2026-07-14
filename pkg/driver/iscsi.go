@@ -134,16 +134,24 @@ func (h *ISCSIHandler) buildConnector(volumeID string, config *ISCSIConfig) *isc
 		DoDiscovery:   true,
 	}
 
-	// Configure CHAP authentication
+	// Configure CHAP authentication. csi-lib-iscsi only writes CHAP settings to the
+	// iscsiadm records when Secrets.SecretsType == "chap"; session CHAP is applied
+	// (via CreateDBEntry) only when Connector.DoCHAPDiscovery is set. Connector.AuthType
+	// is not consulted by the library. Without SecretsType + DoCHAPDiscovery no
+	// credentials are ever configured and a CHAP-protected portal rejects the login
+	// (iscsiadm "exit status 24").
 	if config.CHAPUsername != "" && config.CHAPPassword != "" {
 		connector.AuthType = iscsiAuthTypeCHAP
-		connector.DiscoverySecrets = iscsilib.Secrets{
-			UserName:   config.CHAPUsername,
-			Password:   config.CHAPPassword,
-			UserNameIn: config.CHAPUsernameIn,
-			PasswordIn: config.CHAPPasswordIn,
+		connector.DoCHAPDiscovery = true
+		secrets := iscsilib.Secrets{
+			SecretsType: iscsiAuthTypeCHAP,
+			UserName:    config.CHAPUsername,
+			Password:    config.CHAPPassword,
+			UserNameIn:  config.CHAPUsernameIn,
+			PasswordIn:  config.CHAPPasswordIn,
 		}
-		connector.SessionSecrets = connector.DiscoverySecrets
+		connector.DiscoverySecrets = secrets
+		connector.SessionSecrets = secrets
 	}
 
 	return connector
