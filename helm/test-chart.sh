@@ -56,6 +56,7 @@ check "CSI_DRIVER_NAME env"             "CSI_DRIVER_NAME"
 check "NVMe-oF portal env"              "TRUENAS_NVMEOF_PORTAL"
 check "node loads nvme modules"         "modprobe nvme_tcp"
 check "node mounts host /lib/modules"   "path: /lib/modules"
+check "iscsiadm host path (default)"    "nsenter --mount=/host/proc/1/ns/mnt -- /usr/sbin/iscsiadm"
 absent "nvmeofPortal absent when unset" "nvmeofPortal:"
 check "image tag defaults to appVersion" "truenas-csi:v1.1.1"
 check "standard app name label"         "app.kubernetes.io/name: truenas-csi"
@@ -128,6 +129,21 @@ output=$(helm template test "$CHART" \
   --set truenas.nvmeofPortal="192.168.1.1:4420" 2>&1)
 
 check "nvmeofPortal in ConfigMap"       "nvmeofPortal:.*192.168.1.1:4420"
+
+# ── 7. Custom iscsiadm host path (node.iscsiadmHostPath) ─────────────────────
+echo ""
+echo "7. Custom iscsiadm host path (node.iscsiadmHostPath)"
+output=$(helm template test "$CHART" \
+  --namespace truenas-csi \
+  --set apiSecret.name=truenas-secret \
+  --set truenas.url="wss://192.168.1.1" \
+  --set truenas.defaultPool=tank \
+  --set truenas.nfsServer=192.168.1.1 \
+  --set truenas.iscsiPortal="192.168.1.1:3260" \
+  --set node.iscsiadmHostPath=/run/current-system/sw/bin/iscsiadm 2>&1)
+
+check "iscsiadm host path overridden"   "nsenter --mount=/host/proc/1/ns/mnt -- /run/current-system/sw/bin/iscsiadm"
+absent "default iscsiadm path gone"      "nsenter --mount=/host/proc/1/ns/mnt -- /usr/sbin/iscsiadm"
 
 # ── Result ────────────────────────────────────────────────────────────────────
 echo ""

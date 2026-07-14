@@ -57,6 +57,11 @@ node:
   # modprobe iscsi_tcp etc. Override for distros that don't use /lib/modules
   # (e.g. NixOS: /run/booted-system/kernel-modules/lib/modules).
   modulesPath: /lib/modules
+  # Path to iscsiadm on the host. The node plugin shells out to the host's
+  # iscsiadm via nsenter, so this must match the host binary's location.
+  # Override for distros that don't use /usr/sbin/iscsiadm
+  # (e.g. NixOS: /run/current-system/sw/bin/iscsiadm).
+  iscsiadmHostPath: /usr/sbin/iscsiadm
   resources:
     requests:
       memory: "128Mi"
