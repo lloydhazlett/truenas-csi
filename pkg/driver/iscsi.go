@@ -134,24 +134,29 @@ func (h *ISCSIHandler) buildConnector(volumeID string, config *ISCSIConfig) *isc
 		DoDiscovery:   true,
 	}
 
-	// Configure CHAP authentication. csi-lib-iscsi only writes CHAP settings to the
-	// iscsiadm records when Secrets.SecretsType == "chap"; session CHAP is applied
-	// (via CreateDBEntry) only when Connector.DoCHAPDiscovery is set. Connector.AuthType
-	// is not consulted by the library. Without SecretsType + DoCHAPDiscovery no
-	// credentials are ever configured and a CHAP-protected portal rejects the login
-	// (iscsiadm "exit status 24").
+	// Configure CHAP authentication.
+	//
+	// The controller already resolves the exact target IQN and portal, so
+	// sendtargets discovery is unnecessary — and TrueNAS permits only one
+	// CHAP_MUTUAL discovery entry system-wide, so discovery auth cannot be scaled
+	// per volume. For CHAP volumes we therefore skip discovery (DoDiscovery=false)
+	// and log in directly to the known target, enforcing CHAP only at the session
+	// scope (node.session.auth). csi-lib-iscsi applies session CHAP via
+	// CreateDBEntry, which it calls only when DoCHAPDiscovery is set, and only
+	// writes credentials when Secrets.SecretsType == "chap"; Connector.AuthType is
+	// not consulted. No DiscoverySecrets are set since we do not discover.
+	// (Non-CHAP volumes keep the default discovery path.)
 	if config.CHAPUsername != "" && config.CHAPPassword != "" {
-		connector.AuthType = iscsiAuthTypeCHAP
+		connector.DoDiscovery = false
 		connector.DoCHAPDiscovery = true
-		secrets := iscsilib.Secrets{
+		connector.AuthType = iscsiAuthTypeCHAP
+		connector.SessionSecrets = iscsilib.Secrets{
 			SecretsType: iscsiAuthTypeCHAP,
 			UserName:    config.CHAPUsername,
 			Password:    config.CHAPPassword,
 			UserNameIn:  config.CHAPUsernameIn,
 			PasswordIn:  config.CHAPPasswordIn,
 		}
-		connector.DiscoverySecrets = secrets
-		connector.SessionSecrets = secrets
 	}
 
 	return connector
